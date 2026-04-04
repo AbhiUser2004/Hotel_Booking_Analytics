@@ -1,143 +1,21 @@
--- Create DataBase
-CREATE DATABASE HOTEL_DB;
+<img width="494" height="347" alt="image" src="https://github.com/user-attachments/assets/9fbcdec3-2603-4f20-b9c8-7b86f9335f99" />
 
--- Create File Format
-CREATE OR REPLACE FILE FORMAT FF_CSV
-    TYPE = 'CSV'
-    FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-    SKIP_HEADER = 1
-    NULL_IF = ('NULL', 'null', '')
+<img width="471" height="370" alt="image" src="https://github.com/user-attachments/assets/8a29c5b7-9e7f-494a-9d22-53169c5956af" />
 
--- Create Stage
-CREATE OR REPLACE STAGE STG_HOTEL_BOOKINGS
-FILE_FORMAT = (FORMAT_NAME = FF_CSV)
-ON_ERROR = 'CONTINUE';
-    FILE_FORMAT = FF_CSV;
+<img width="498" height="181" alt="image" src="https://github.com/user-attachments/assets/71fe75f0-d21c-4077-a4d1-784e7df47711" />
 
--- Create Table BRONZE_HOTEL_BOOKING
-CREATE TABLE BRONZE_HOTEL_BOOKING (
-    booking_id STRING,
-    hotel_id STRING,
-    hotel_city STRING,
-    customer_id STRING,
-    customer_name STRING,
-    customer_email STRING,
-    check_in_date STRING,
-    check_out_date STRING,
-    room_type STRING,
-    num_guests STRING,
-    total_amount STRING,
-    currency STRING,
-    booking_status STRING
-);
+<img width="405" height="103" alt="image" src="https://github.com/user-attachments/assets/7bf45816-a028-4e0c-9e07-0ae86a5a91e7" />
 
--- Loading Data from Stage to Bronze Table
-COPY INTO BRONZE_HOTEL_BOOKING
-FROM @STG_HOTEL_BOOKINGS
-FILE_FORMAT = (FORMAT_NAME = FF_CSV)
-ON_ERROR = 'CONTINUE';
+<img width="437" height="93" alt="image" src="https://github.com/user-attachments/assets/39c32889-f65f-4fe3-ada5-07e2b547884b" />
 
-SELECT * FROM BRONZE_HOTEL_BOOKING LIMIT 50;
+<img width="657" height="89" alt="image" src="https://github.com/user-attachments/assets/596e87df-c467-449a-8131-d90a2f60d072" />
 
--- Create Table SILVER_HOTEL_BOOKINGS
-CREATE TABLE SILVER_HOTEL_BOOKINGS (
-    booking_id VARCHAR,
-    hotel_id VARCHAR,
-    hotel_city VARCHAR,
-    customer_id VARCHAR,
-    customer_name VARCHAR,
-    customer_email VARCHAR,
-    check_in_date DATE,
-    check_out_date DATE,
-    room_type VARCHAR,
-    num_guests INTEGER,
-    total_amount FLOAT,
-    currency VARCHAR,
-    booking_status VARCHAR
-);
+<img width="329" height="65" alt="image" src="https://github.com/user-attachments/assets/720d7e46-035d-4253-b7d2-7507269fd7ca" />
 
--- Checking for errors
-SELECT customer_email
-FROM BRONZE_HOTEL_BOOKING
-WHERE NOT (customer_email LIKE '%@%.%')
-    OR customer_email IS NULL
+<img width="800" height="647" alt="image" src="https://github.com/user-attachments/assets/b5a7a335-74d3-49a3-ba45-8e31cf566b8c" />
 
-SELECT total_amount
-FROM BRONZE_HOTEL_BOOKING
-WHERE TRY_TO_NUMBER(total_amount) < 0;
+<img width="422" height="195" alt="image" src="https://github.com/user-attachments/assets/319e46b0-1b49-42c4-8d66-908f492669d5" />
 
-SELECT check_in_date, check_out_date
-FROM BRONZE_HOTEL_BOOKING
-WHERE TRY_TO_DATE(check_out_date) < TRY_TO_DATE(check_in_date);
+<img width="475" height="167" alt="image" src="https://github.com/user-attachments/assets/d55ba0ef-b238-4e44-9075-57dbf34866f5" />
 
-SELECT DISTINCT booking_status
-FROM BRONZE_HOTEL_BOOKING;
-
--- Iserting Cleaned data to Silver layer
-INSERT INTO SILVER_HOTEL_BOOKINGS
-SELECT
-    booking_id,
-    hotel_id,
-    INITCAP(TRIM(hotel_city)) AS hotel_city,
-    customer_id,
-    INITCAP(TRIM(customer_name)) AS customer_name,
-    CASE
-        WHEN customer_email LIKE '%@%.%' THEN LOWER(TRIM(customer_email))
-        ELSE NULL
-    END AS customer_email,
-    TRY_TO_DATE(NULLIF(check_in_date, '')) AS check_in_date,
-    TRY_TO_DATE(NULLIF(check_out_date, '')) AS check_out_date,
-    room_type,
-    num_guests,
-    ABS(TRY_TO_NUMBER(total_amount)) AS total_amount,
-    currency,
-    CASE
-        WHEN LOWER(booking_status) in ('confirmeeed', 'confirmd') THEN 'Confirmed'
-        ELSE booking_status
-    END AS booking_status
-    FROM BRONZE_HOTEL_BOOKING
-    WHERE
-        TRY_TO_DATE(check_in_date) IS NOT NULL
-        AND TRY_TO_DATE(check_out_date) IS NOT NULL
-        AND TRY_TO_DATE(check_out_date) >= TRY_TO_DATE(check_in_date);
-
-SELECT * FROM SILVER_HOTEL_BOOKINGS LIMIT 30;
-
--- Create Gold Tables
-CREATE TABLE GOLD_AGG_DAILY_BOOKING AS
-SELECT
-    check_in_date AS date,
-    COUNT(*) AS total_booking,
-    SUM(total_amount) AS total_revenue
-FROM SILVER_HOTEL_BOOKINGS
-GROUP BY check_in_date
-ORDER BY date;
-
-CREATE TABLE GOLD_AGG_HOTEL_CITY_SALES AS
-SELECT
-    hotel_city,
-    SUM(total_amount) AS total_revenue
-FROM SILVER_HOTEL_BOOKINGS
-GROUP BY hotel_city
-ORDER BY total_revenue DESC;
-
-CREATE TABLE GOLD_BOOKING_CLEAN AS
-SELECT
-    booking_id,
-    hotel_id,
-    hotel_city,
-    customer_id,
-    customer_name,
-    customer_email,
-    check_in_date,
-    check_out_date,
-    room_type,
-    num_guests,
-    total_amount,
-    currency,
-    booking_status
-FROM SILVER_HOTEL_BOOKINGS;
-
-SELECT * FROM GOLD_AGG_DAILY_BOOKING LIMIT 30;
-
-SELECT * FROM GOLD_AGG_HOTEL_CITY_SALES LIMIT 30;
+<img width="545" height="459" alt="image" src="https://github.com/user-attachments/assets/982c31df-3194-4887-aac2-e131be2d5fc2" />
